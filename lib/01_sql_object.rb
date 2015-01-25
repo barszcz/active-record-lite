@@ -81,7 +81,7 @@ class SQLObject
 
     p question_marks
 
-    DBConnection.execute(<<-SQL, *self.attribute_values)
+    DBConnection.execute(<<-SQL, *attribute_values)
       INSERT INTO
         #{self.class.table_name} (#{self.class.columns.join(', ')})
       VALUES
@@ -92,10 +92,18 @@ class SQLObject
   end
 
   def update
-    # ...
+    cols = self.class.columns.map {|col| "#{col} = ?" }.join(", ")
+    DBConnection.execute(<<-SQL, *attribute_values, self.id)
+      UPDATE
+        #{self.class.table_name}
+      SET
+        #{cols}
+      WHERE
+        id = ?
+    SQL
   end
 
   def save
-    # ...
+    self.id.nil? ? self.insert : self.update
   end
 end
